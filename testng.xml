@@ -6,6 +6,7 @@
     <classes>
       <class name="com.cases.KfglTest_New"/>
     </classes>
-    
+
+
   </test> <!-- Test -->
 </suite> <!-- Suite -->
