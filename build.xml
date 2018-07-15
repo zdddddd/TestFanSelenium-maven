@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- one project with multiple targets  -->
+<project name="test" default="transform2" basedir="../../Desktop/TestExtend">
+	<!-- paths used -->
+	<property name="src.dir" value="src" />
+	<property name="conf.dir" value="conf" />
+	<property name="res.dir" value="res" />
+	<property name="data.dir" value="testdata" />
+	<property name="dest.dir" value="build" />
+	<property name="dest.report" value="report" />
+	<property name="dest.report2" value="report2" />
+
+	<path id="jarfile">
+		<fileset dir="../../Desktop/TestExtend/lib" includes="selenium-server-standalone-2.26.0.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="testng-6.8.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="log4j-1.2.17.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="ant-contrib-1.0b3.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="saxon-8.7.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="SaxonLiaison.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="databene-benerator-0.7.1.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="databene-commons-0.5.9.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="databene-webdecs-0.6.1.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="feed4testng-1.0.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="jdbacl-0.6.11.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="jxl-2.6.12.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="poi-3.5-beta6.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="slf4j-api-1.7.2.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="slf4j-log4j12-1.7.2.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="validation-api-1.0.0.GA.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="mysql-connector-java-5.1.22-bin.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="ojdbc6.jar" />
+		<fileset dir="../../Desktop/TestExtend/lib" includes="dbunit-2.4.9.jar" />
+		
+		<!--<fileset dir="lib" includes= "slf4j-api-1.6.4.jar" />-->
+	</path>
+
+	<!-- delete the output folder if it exists -->
+	<delete dir="${dest.dir}" failonerror="false" />
+	<!-- create the output folder -->
+	<mkdir dir="${dest.dir}" />
+	<mkdir dir="${dest.report}" />
+	<mkdir dir="${dest.report2}" />
+	<!-- delete the failed report if it exists -->
+	<delete file="${basedir}/report/testng-failed.xml" />
+
+	<!-- target to compile all test classes out -->
+	<target name="build">
+
+		<!-- do copy -->
+		<copy todir="${dest.dir}/conf">
+			<fileset dir="${conf.dir}" />
+		</copy>
+
+		<!-- do copy -->
+		<copy todir="${dest.dir}/res">
+			<fileset dir="${res.dir}" />
+		</copy>
+		
+		<!-- do copy -->
+		<copy todir="${dest.dir}/testdata">
+			<fileset dir="${data.dir}" />
+		</copy>
+
+		<!-- compile -->
+		<javac srcdir="${src.dir}" destdir="${dest.dir}" encoding="UTF-8" debug="true" fork="yes">
+			<classpath refid="jarfile" />
+		</javac>
+
+	</target>
+
+	<!-- define the TestNG task -->
+
+	<taskdef name="testng" classname="com.beust.testng.TestNGAntTask" classpathref="jarfile" />
+
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+		<classpath>
+			<pathelement location="../../Desktop/TestExtend/lib/ant-contrib-1.0b3.jar" />
+		</classpath>
+	</taskdef>
+
+	<!-- run test cases the first time -->
+	<target name="uiTestOnIE" depends="build">
+		<testng classpathref="jarfile" outputDir="${dest.report}" haltOnFailure="false">
+			<classfileset dir="${dest.dir}" includes="*.class" />
+			<classpath>
+				<pathelement path="${dest.dir}" />
+			</classpath>
+			<xmlfileset dir="${basedir}" includes="testng.xml" />
+		</testng>
+	</target>
+
+	<target name="transform" depends="uiTestOnIE">
+		<xslt in="${basedir}/report/testng-results.xml" style="${basedir}/res/testng-results.xsl" out="${basedir}/report/index2.html" classpathref="jarfile" processor="SaxonLiaison">
+			<!-- you need to specify the directory here again -->
+			<param name="testNgXslt.outputDir" expression="${basedir}/report/" />
+			<param name="testNgXslt.showRuntimeTotals" expression="true" />
+			<classpath refid="jarfile" />
+		</xslt>
+	</target>
+
+	<!-- run failed cases -->
+	<target name="uiTestOnIE2" if="fileIsExists" depends="detect.file">
+		<testng classpathref="jarfile" outputDir="${dest.report2}" haltOnFailure="false">
+			<classfileset dir="${dest.dir}" includes="*.class" />
+			<classpath>
+				<pathelement path="${dest.dir}" />
+			</classpath>
+			<xmlfileset dir="${basedir}/report" includes="testng-failed.xml" />
+		</testng>
+	</target>
+
+	<target name="transform2" if="fileIsExists" depends="uiTestOnIE2">
+		<xslt in="${basedir}/report2/testng-results.xml" style="${basedir}/res/testng-results.xsl" out="${basedir}/report2/index2.html" classpathref="jarfile" processor="SaxonLiaison">
+			<!-- you need to specify the directory here again -->
+			<param name="testNgXslt.outputDir" expression="${basedir}/report2/" />
+			<param name="testNgXslt.showRuntimeTotals" expression="true" />
+			<classpath refid="jarfile" />
+		</xslt>
+	</target>
+
+	<target name="detect.file" depends="transform">
+		<condition property="fileIsExists">
+			<and>
+				<available file="${basedir}/report/testng-failed.xml" />
+			</and>
+		</condition>
+	</target>
+</project>

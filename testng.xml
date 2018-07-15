@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suite name="Suite" parallel="false">
+  <test name="Test" preserve-order="true">
+  <parameter name ="driverType" value ="2" />
+
+    
+    <classes>
+      <class name="com.cases.KfglTest_New"/>
+    </classes>
+    
+  </test> <!-- Test -->
+</suite> <!-- Suite -->
