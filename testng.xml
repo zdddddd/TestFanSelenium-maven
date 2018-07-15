@@ -3,7 +3,6 @@
   <test name="Test" preserve-order="true">
   <parameter name ="driverType" value ="2" />
 
-    
     <classes>
       <class name="com.cases.KfglTest_New"/>
     </classes>
